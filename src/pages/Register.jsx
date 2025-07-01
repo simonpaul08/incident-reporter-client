@@ -1,9 +1,8 @@
 import { useFormik } from 'formik';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'
 import { object, string, ref } from 'yup';
 import axios from 'axios';
-import { axiosPublic } from '../utils/axios';
 import Loader from '../components/loader/Loader';
 import { toast, Toaster } from 'sonner';
 import { useAuthContext } from '../context/AuthContext';
@@ -24,7 +23,7 @@ const Register = () => {
 
     const navigate = useNavigate()
 
-
+    const { publicInstance } = useAuthContext();
 
     const schema = object({
         type: string().oneOf(["individual", "enterprise", "government"]).required("type is required"),
@@ -60,7 +59,7 @@ const Register = () => {
         const { countryCode, ...rest } = values;
 
         try {
-            const res = await axiosPublic.post("api/auth/register", { ...rest });
+            const res = await publicInstance.post("api/auth/register", { ...rest });
             toast.success(res.data?.message);
             setTimeout(() => {
                 navigate("/login");

@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getUserByid } from "../utils/apis";
-
-const STORAGE_NAME = "incident_data"
+import axios from "axios";
 
 const AuthContext = createContext(null);
 
@@ -12,64 +10,62 @@ export const useAuthContext = () => {
 const AuthProvider = ({ children }) => {
 
     const [currentUser, setCurrentUser] = useState(null);
-    const [userDetails, setUserDetails] = useState(null);
-    const [isFetching, setIsFetching] = useState(false);
 
-    console.log("current user -", currentUser)
+    const API_URL = import.meta.env.VITE_APP_SERVER_URL;
+
+    const publicInstance = axios.create({
+        baseURL: `${API_URL}`,
+    });
+
+    const token = localStorage.getItem("incident_data_token")
+
+    const privateInstance = axios.create({
+        baseURL: `${API_URL}`,
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
 
     // handle set user
-    const handleSetUser = (values) => {
-        localStorage.setItem(STORAGE_NAME, JSON.stringify(values))
-        setCurrentUser(values)
-    };
+    const handleSetUser = (user, token) => {
+        setCurrentUser(user)
+        localStorage.setItem("incident_data_user", JSON.stringify(user));
+        localStorage.setItem("incident_data_token", token)
+    }
 
-    // handle logout user
+    // handle logout 
     const handleLogout = () => {
-        localStorage.removeItem(STORAGE_NAME)
         setCurrentUser(null)
+        localStorage.removeItem("incident_data_user")
+        localStorage.removeItem("incident_data_token")
     }
 
-    const fetchUserDetails = async (id) => {
-        setIsFetching(true);
-        try {
-            const res = await getUserByid(id);
-            if (res.data) {
-                setUserDetails(res.data?.user)
-            }
-            return res.data?.user ?? null
+    let values = {
+        currentUser,
+        setCurrentUser,
+        token,
+        handleSetUser,
+        handleLogout,
+        publicInstance,
+        privateInstance
+    }
 
-        } catch (error) {
-            return error
-        } finally {
-            setIsFetching(false)
+    useEffect(() => {
+        let user = JSON.parse(localStorage.getItem("incident_data_user"));
+        let token = localStorage.getItem("incident_data_token")
+        if (user && token) {
+            console.log("users have ")
+            setCurrentUser(user)
         }
-    }
-
-        // presist user
-        useEffect(() => {
-            const user = JSON.parse(localStorage.getItem(STORAGE_NAME))
-            console.log("user", user)
-            if (user) {
-                setCurrentUser(user)
-            }
-        }, [])
-
-        let values = {
-            currentUser,
-            handleSetUser,
-            userDetails,
-            setUserDetails,
-            fetchUserDetails,
-            handleLogout,
-            isFetching
-        }
+    }, [])
 
 
-        return (
-            <AuthContext.Provider value={values}>
-                {children}
-            </AuthContext.Provider>
-        )
-    }
+    return (
+        <AuthContext.Provider value={values}>
+            {children}
+        </AuthContext.Provider>
+    )
+}
 
-    export default AuthProvider;
+export default AuthProvider;

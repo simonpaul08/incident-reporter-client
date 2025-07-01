@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import Loader from '../components/loader/Loader'
 import { Link, useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik';
-import { axiosPublic } from '../utils/axios';
 import { useAuthContext } from '../context/AuthContext';
 import { toast, Toaster } from 'sonner';
 import { object, string } from 'yup';
@@ -10,7 +9,7 @@ import { object, string } from 'yup';
 const Login = () => {
 
     const [isLoading, setIsLoading] = useState(false);
-    const { handleSetUser } = useAuthContext()
+    const { handleSetUser, publicInstance } = useAuthContext()
     const navigate = useNavigate()
 
     // form schema
@@ -28,10 +27,10 @@ const Login = () => {
         setIsLoading(true)
 
         try {
-            const res = await axiosPublic.post("api/auth/login", { ...values });
+            const res = await publicInstance.post("api/auth/login", { ...values });
             toast.success(res.data?.message);
             setTimeout(() => {
-                handleSetUser(res.data?.user);
+                handleSetUser(res.data?.user, res.data?.token);
                 navigate("/dashboard");
             }, 1000);
         } catch (error) {
