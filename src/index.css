@@ -1,0 +1,21 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-primary: #2d4360;
+  --color-primary-dark: #053B50;
+  --color-white: #fff;
+  --color-gray: #f1f1f1;
+  --color-gray-dark: #a7a7a7;
+  --color-black: #333;
+  --font-primary: "Roboto", sans-serif;
+  --font-secondary: "Poppins", sans-serif;
+}
+
+body {
+  font-family: var(--font-secondary);
+}
+
