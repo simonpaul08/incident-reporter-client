@@ -5,6 +5,7 @@ import { useAuthContext } from '../context/AuthContext'
 import AddIncident from '../components/AddIncident'
 import Loader from '../components/loader/Loader'
 import { FaPencil } from 'react-icons/fa6'
+import UpdateIncident from '../components/UpdateIncident'
 
 const Dashboard = () => {
 
@@ -12,7 +13,9 @@ const Dashboard = () => {
     const [incidents, setIncidents] = useState([])
     const [isModal, setIsModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isUpdate, setIsUpdate] = useState(false);
     const [selectedIncident, setSelectedIncident] = useState(null)
+
 
     const { privateInstance } = useAuthContext();
 
@@ -32,15 +35,19 @@ const Dashboard = () => {
     }
 
     const openModal = () => setIsModal(true)
-    const closeModal = () => {
+    const closeModal = () => setIsModal(false)
+
+    const openUpdateModal = () => setIsUpdate(true)
+    const closeUpdateModal = () => {
         setSelectedIncident(null)
-        setIsModal(false)
+        setIsUpdate(false)
     }
+
 
     // handle edit incident                                                 
     const handleEditIncident = (incident) => {
         setSelectedIncident(incident)
-        setIsModal(true)
+        setIsUpdate(true)
     }
 
     useEffect(() => {
@@ -52,7 +59,8 @@ const Dashboard = () => {
         <div className="dashboard-content-wrapper">
             {/* {isRequest && <FullScreenLoader />} */}
             <Header />
-            {isModal && <AddIncident closeModal={closeModal} fetchUserIncidents={fetchUserIncidents} incident={selectedIncident}/>}
+            {isModal && <AddIncident closeModal={closeModal} fetchUserIncidents={fetchUserIncidents}/>}
+            {isUpdate && <UpdateIncident closeModal={closeUpdateModal} fetchUserIncidents={fetchUserIncidents} incident={selectedIncident}/>}
             <div className="dashboard-content">
                 <div className="add-book-wrapper">
                     <div className='add-admin-wrapper'>

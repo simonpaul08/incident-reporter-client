@@ -5,7 +5,7 @@ import { useFormik } from "formik";
 import Loader from "./loader/Loader";
 import { useAuthContext } from "../context/AuthContext";
 
-const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
+const UpdateIncident = ({ closeModal, fetchUserIncidents, incident }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { privateInstance } = useAuthContext()
 
@@ -19,19 +19,12 @@ const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
                 incident_id: incident?.incident_id
             }
 
-            if (incident) {
-                const res = await privateInstance.patch(`api/incident/${incident?.id}`, { ...body });
-                if (res.data) {
-                    closeModal()
-                    fetchUserIncidents()
-                }
-            } else {
-                const res = await privateInstance.post("api/incident", { ...values });
-                if (res.data) {
-                    closeModal()
-                    fetchUserIncidents()
-                }
+            const res = await privateInstance.patch(`api/incident/${incident?.id}`, { ...body });
+            if (res.data) {
+                closeModal()
+                fetchUserIncidents()
             }
+
         } catch (e) {
             console.error(e)
         }
@@ -44,7 +37,8 @@ const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
         reporter_name: string().required("reporter name is required"),
         details: string().required("details is required"),
         priority: string().required("priority is required"),
-        reporter_type: string().required("reporter type is required")
+        reporter_type: string().required("reporter type is required"),
+        status: string().required("status is required")
     });
 
     const formik = useFormik({
@@ -53,6 +47,7 @@ const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
             details: "",
             priority: "",
             reporter_type: "",
+            status: ""
         },
         validationSchema: schema,
         validateOnBlur: false,
@@ -60,6 +55,17 @@ const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
         onSubmit: handleSubmit,
     });
 
+
+    useEffect(() => {
+        if (incident) {
+            formik.setFieldValue("reporter_name", incident?.reporter_name)
+            formik.setFieldValue("reporter_type", incident?.reporter_type)
+            formik.setFieldValue("details", incident?.details)
+            formik.setFieldValue("priority", incident?.priority)
+            formik.setFieldValue("status", incident?.status)
+        }
+
+    }, [incident])
 
     return (
         <div className="modal">
@@ -125,6 +131,21 @@ const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
                             </select>
                             <p>{formik.errors.reporter_type || ""}</p>
                         </div>
+                        <div className="modal-form-item">
+                            <select
+                                name="status"
+                                id="status"
+                                className="form-input-alt form-alt-textarea"
+                                value={formik.values.status}
+                                onChange={formik.handleChange}
+                            >
+                                <option value={""} selected disabled>Select Status</option>
+                                <option value={"open"} >Open</option>
+                                <option value={"in-progress"} >In Porgress</option>
+                                <option value={"closed"} >Close</option>
+                            </select>
+                            <p>{formik.errors.status || ""}</p>
+                        </div>
 
                         <button type="submit" className="modal-form-btn">
                             {isLoading ? <Loader /> : <>{"Submit"}</>}
@@ -136,4 +157,4 @@ const AddIncident = ({ closeModal, fetchUserIncidents, incident=null }) => {
     );
 };
 
-export default AddIncident;
+export default UpdateIncident;
