@@ -6,10 +6,11 @@ import AddIncident from '../components/AddIncident'
 import Loader from '../components/loader/Loader'
 import { FaPencil } from 'react-icons/fa6'
 import UpdateIncident from '../components/UpdateIncident'
+import { toast, Toaster } from 'sonner'
 
 const Dashboard = () => {
 
-    const [searchBook, setSearchBook] = useState("")
+    const [searchIncident, setSearchIncident] = useState("")
     const [incidents, setIncidents] = useState([])
     const [isModal, setIsModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +38,6 @@ const Dashboard = () => {
     const openModal = () => setIsModal(true)
     const closeModal = () => setIsModal(false)
 
-    const openUpdateModal = () => setIsUpdate(true)
     const closeUpdateModal = () => {
         setSelectedIncident(null)
         setIsUpdate(false)
@@ -50,6 +50,37 @@ const Dashboard = () => {
         setIsUpdate(true)
     }
 
+    // handle search book
+    const handleSearchIncident = async (e) => {
+
+        e.preventDefault();
+
+        if(searchIncident === "") {
+            fetchUserIncidents()
+            return
+        }
+
+        setIsLoading(true)
+        setIncidents([])
+        try {
+            const res = await privateInstance.get(`api/incident/search?query=${searchIncident}`);
+            if(res.data) {
+               setIncidents(res.data?.incident ?? [])
+            }
+        } catch (error) {
+            console.log(error)
+            if (error?.response?.data?.message) {
+                toast.error(error?.response?.data?.message);
+            } else if (error?.message) {
+                toast.error(error?.message);
+            } else {
+                toast.error("something went wrong");
+            }
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     useEffect(() => {
         fetchUserIncidents()
     }, [])
@@ -58,9 +89,10 @@ const Dashboard = () => {
 
         <div className="dashboard-content-wrapper">
             {/* {isRequest && <FullScreenLoader />} */}
+            <Toaster richColors position="top-center" duration={2000} />
             <Header />
-            {isModal && <AddIncident closeModal={closeModal} fetchUserIncidents={fetchUserIncidents}/>}
-            {isUpdate && <UpdateIncident closeModal={closeUpdateModal} fetchUserIncidents={fetchUserIncidents} incident={selectedIncident}/>}
+            {isModal && <AddIncident closeModal={closeModal} fetchUserIncidents={fetchUserIncidents} />}
+            {isUpdate && <UpdateIncident closeModal={closeUpdateModal} fetchUserIncidents={fetchUserIncidents} incident={selectedIncident} />}
             <div className="dashboard-content">
                 <div className="add-book-wrapper">
                     <div className='add-admin-wrapper'>
@@ -69,14 +101,14 @@ const Dashboard = () => {
                         </button>
                     </div>
                     <div className="search-wrapper">
-                        <form className="search-form">
+                        <form className="search-form" onSubmit={handleSearchIncident}>
                             <input
                                 type="text"
                                 name="search"
                                 className="search-form-input"
                                 placeholder="Search Incident by ID"
-                                value={searchBook}
-                                onChange={(e) => setSearchBook(e.target.value)}
+                                value={searchIncident}
+                                onChange={(e) => setSearchIncident(e.target.value)}
                             />
                             <button type="submit" className="search-btn">
                                 <FaSearch className="search-icon" />
